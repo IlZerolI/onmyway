@@ -1,0 +1,821 @@
+﻿<!DOCTYPE html>
+<html lang="bs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>onmyway — EIT Urban Mobility Challenge B2</title>
+<style>
+  :root{
+    --canvas:#F8FAFC;
+    --white:#FFFFFF;
+    --ink:#0F172A;
+    --teal:#0D9488;
+    --teal-dark:#0F766E;
+    --green:#10B981;
+    --slate:#E2E8F0;
+    --border:#E2E8F0;
+    --amber:#F59E0B;
+    --amber-bg:#FEF3C7;
+    --shadow:0 20px 40px -12px rgba(15,23,42,0.10);
+    --shadow-3d:0 35px 70px -16px rgba(15,23,42,0.18);
+    --radius:24px;
+    --font:'Plus Jakarta Sans',Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    --transition:all 0.5s cubic-bezier(0.23,1,0.32,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--font);
+    background:var(--canvas);
+    color:var(--ink);
+    line-height:1.6;
+    overflow-x:hidden;
+  }
+  .container{max-width:1200px;margin:0 auto;padding:0 32px}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%;display:block}
+  .depth{
+    position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:
+      radial-gradient(1400px 700px at 15% -5%, rgba(13,148,136,0.08), transparent 55%),
+      radial-gradient(1100px 600px at 105% 10%, rgba(245,158,11,0.06), transparent 50%),
+      radial-gradient(900px 500px at 40% 110%, rgba(16,185,129,0.05), transparent 50%);
+  }
+  header{
+    position:sticky;top:0;z-index:200;
+    background:rgba(248,250,252,0.65);
+    backdrop-filter:blur(20px) saturate(200%);
+    border-bottom:1px solid rgba(226,232,240,0.7);
+  }
+  .header-inner{display:flex;align-items:center;justify-content:space-between;padding:20px 0}
+  .logo{display:flex;align-items:center;gap:14px;cursor:pointer;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.08))}
+  .logo-mark{
+    width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#0D9488 0%,#10B981 100%);
+    display:grid;place-items:center;color:#fff;font-weight:900;font-size:20px;
+    box-shadow:0 12px 28px -8px rgba(13,148,136,0.5);
+    transform-style:preserve-3d;transition:var(--transition)
+  }
+  .logo-mark:hover{transform:rotateY(15deg) rotateX(5deg) scale(1.05)}
+  .logo-text{font-size:22px;font-weight:900;letter-spacing:-0.5px}
+  nav ul{display:flex;gap:34px;list-style:none}
+  nav a{font-size:14px;font-weight:800;color:#475569;transition:color .3s}
+  nav a:hover{color:var(--teal)}
+  .btn{
+    display:inline-flex;align-items:center;gap:10px;
+    padding:12px 24px;border-radius:999px;border:none;font-weight:900;font-size:14px;
+    cursor:pointer;transition:var(--transition)
+  }
+  .btn-primary{background:var(--teal);color:#fff;box-shadow:0 14px 30px -10px rgba(13,148,136,0.5)}
+  .btn-primary:hover{background:var(--teal-dark);transform:translateY(-3px) scale(1.04);box-shadow:0 20px 40px -10px rgba(13,148,136,0.6)}
+  .btn-outline{background:transparent;color:var(--ink);border:1px solid var(--border)}
+  .btn-outline:hover{background:#fff;border-color:var(--ink);transform:translateY(-3px)}
+  .btn-sm{padding:10px 20px;font-size:13px}
+  .pill{
+    display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;
+    font-size:11px;font-weight:900;letter-spacing:.6px;text-transform:uppercase
+  }
+  .pill-eit{background:#E0F2F1;color:var(--teal-dark)}
+  .pill-amber{background:var(--amber-bg);color:#92400E}
+  .section{padding:100px 0;position:relative}
+  .section-head{margin-bottom:56px;max-width:900px;margin-inline:auto}
+  .section-title{font-size:48px;font-weight:900;letter-spacing:-0.03em;line-height:1.05;margin-bottom:14px}
+  .section-sub{color:#475569;font-size:18px;line-height:1.8}
+  .eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:12px;font-weight:900;letter-spacing:1.8px;color:var(--teal);text-transform:uppercase;margin-bottom:16px}
+  .hero{padding:120px 0}
+  .hero-inner{display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center;max-width:1000px;margin-inline:auto}
+  .hero h1{font-size:60px;font-weight:900;letter-spacing:-0.03em;line-height:1.02;margin-bottom:24px}
+  .hero p{font-size:21px;color:#475569;margin-bottom:32px;line-height:1.8}
+  .hero-actions{display:flex;gap:16px;flex-wrap:wrap}
+  .impact-card{width:100%;background:var(--white);border:1px solid var(--border);border-radius:30px;padding:40px;box-shadow:var(--shadow-3d);position:relative;overflow:hidden;transform-style:preserve-3d;transition:var(--transition)}
+  .impact-card:hover{transform:translateY(-6px) rotateX(2deg)}
+  .impact-card::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#0D9488,#10B981)
+  }
+  .impact-card .row{display:flex;justify-content:space-between;padding:18px 0;border-bottom:1px solid #f1f5f9}
+  .impact-card .row:last-child{border-bottom:none}
+  .impact-card .lbl{font-size:13px;color:#64748b;font-weight:900;text-transform:uppercase;letter-spacing:.6px}
+  .impact-card .val{font-size:16px;font-weight:900}
+  .map-wrap{display:flex;flex-direction:column;gap:30px;align-items:center;max-width:900px;margin-inline:auto;width:100%}
+  .map-controls{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+  .filter-pill{
+    padding:12px 22px;border-radius:999px;border:1px solid var(--border);background:var(--white);
+    font-size:13px;font-weight:900;cursor:pointer;color:#475569;transition:var(--transition);
+    box-shadow:0 4px 14px -6px rgba(0,0,0,0.06);transform-style:preserve-3d
+  }
+  .filter-pill:hover{transform:translateY(-3px) rotateX(5deg);border-color:var(--teal);color:var(--teal)}
+  .filter-pill.active{background:var(--teal);color:#fff;border-color:var(--teal);box-shadow:0 14px 28px -10px rgba(13,148,136,0.45)}
+  .iso-stage{width:100%;height:560px;perspective:1400px;display:flex;justify-content:center;align-items:center;background:var(--white);border:1px solid var(--border);border-radius:32px;box-shadow:var(--shadow-3d);overflow:hidden;position:relative}
+  .iso-world{position:relative;width:640px;height:420px;transform-style:preserve-3d;transform:rotateX(30deg) rotateZ(0deg) translateZ(-160px);transition:transform 0.8s cubic-bezier(0.23,1,0.32,1);will-change:transform}
+  .iso-floor{position:absolute;width:640px;height:420px;background:#E2E8F0;border-radius:16px;transform:rotateX(90deg) translateZ(-210px);opacity:0.5}
+  .iso-block{position:absolute;transform-style:preserve-3d;transition:transform .5s ease,box-shadow .3s}
+  .iso-block:hover{transform:translateZ(30px) scale(1.03);box-shadow:0 20px 40px rgba(0,0,0,0.2)}
+  .iso-face{position:absolute;background:#CBD5E1;border:1px solid rgba(255,255,255,0.4);box-shadow:inset 0 0 20px rgba(0,0,0,0.05)}
+  .iso-top{background:#94A3B8}
+  .iso-front{background:#E2E8F0}
+  .iso-side{background:#F1F5F9}
+  .iso-street{position:absolute;transform-style:preserve-3d;background:linear-gradient(180deg,#64748B,#475569);border-radius:8px;opacity:0.9}
+  .iso-corridor{position:absolute;transform-style:preserve-3d;background:linear-gradient(135deg,#BBF7D0,#86EFAC);border-radius:10px}
+  .iso-pin{position:absolute;transform-style:preserve-3d;cursor:pointer;transition:transform .3s}
+  .iso-pin:hover{transform:translateZ(40px) scale(1.2)}
+  .iso-bubble{position:absolute;bottom:130%;left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:12px;font-weight:900;color:#0F172A;box-shadow:var(--shadow);pointer-events:none;opacity:0;transition:opacity .3s}
+  .iso-pin:hover .iso-bubble{opacity:1}
+  .iso-stop{width:22px;height:22px;background:#FFFFFF;border:3px solid var(--teal);border-radius:50%;box-shadow:0 0 0 4px rgba(13,148,136,0.25);position:absolute;top:-11px;left:-11px}
+  .iso-stop::after{content:'T';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:10px;font-weight:900;color:var(--teal-dark)}
+  .iso-pickup{width:30px;height:30px;background:#F59E0B;border:3px solid #FFFFFF;border-radius:50%;box-shadow:0 0 0 6px rgba(245,158,11,0.35);position:absolute;top:-15px;left:-15px;animation:pulsePin 2.5s infinite ease-in-out}
+  @keyframes pulsePin{0%,100%{transform:translateZ(0) scale(1);box-shadow:0 0 0 6px rgba(245,158,11,0.35)}50%{transform:translateZ(20px) scale(1.15);box-shadow:0 0 0 14px rgba(245,158,11,0.55)}}
+  .iso-label{position:absolute;transform:translateZ(10px);font-size:11px;font-weight:900;letter-spacing:.4px;color:#0F766E;white-space:nowrap;pointer-events:none}
+  .info-card{background:var(--white);border:1px solid var(--border);border-radius:30px;padding:36px;box-shadow:var(--shadow-3d);transform-style:preserve-3d;transition:var(--transition);width:100%}
+  .info-card:hover{transform:translateY(-4px)}
+  .info-card h3{font-size:22px;font-weight:900;margin-bottom:12px}
+  .info-card p{color:#475569;font-size:15.5px;line-height:1.75}
+  .info-card .tag{display:inline-block;margin-top:16px;padding:8px 16px;border-radius:11px;background:#F1F5F9;font-size:12px;font-weight:900;color:#0F172A}
+  .flow{display:flex;gap:28px;flex-wrap:wrap;perspective:1000px}
+  .step{flex:1;min-width:290px;background:var(--white);border:1px solid var(--border);border-radius:30px;padding:40px 30px;position:relative;box-shadow:var(--shadow-3d);transition:var(--transition);transform-style:preserve-3d}
+  .step:hover{transform:translateY(-10px) rotateX(5deg);box-shadow:0 40px 80px -18px rgba(15,23,42,0.16)}
+  .step-badge{position:absolute;top:-16px;left:32px;background:linear-gradient(135deg,#0D9488,#10B981);color:#fff;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:900;box-shadow:0 12px 24px -8px rgba(13,148,136,0.5)}
+  .step h4{font-size:21px;font-weight:900;margin-bottom:14px}
+  .step p{color:#475569;font-size:15px;line-height:1.8}
+  .arrow-3d{align-self:center;width:0;height:0;border-left:24px solid var(--teal);border-top:16px solid transparent;border-bottom:16px solid transparent;margin:0 6px}
+  .demo{background:var(--white);border:1px solid var(--border);border-radius:40px;overflow:hidden;box-shadow:var(--shadow-3d)}
+  .demo-head{display:flex;justify-content:space-between;align-items:center;padding:32px 48px;border-bottom:1px solid var(--border)}
+  .demo-head h3{font-size:24px;font-weight:900}
+  .state-toggle{display:flex;gap:12px;border:1px solid var(--border);background:var(--canvas);border-radius:18px;padding:8px}
+  .state-btn{padding:10px 22px;border-radius:14px;border:none;background:transparent;font-size:13px;font-weight:900;cursor:pointer;color:#64748b;transition:var(--transition)}
+  .state-btn.active{background:var(--white);color:var(--teal);box-shadow:0 12px 24px -8px rgba(0,0,0,0.08);transform:translateY(-2px)}
+  .demo-split{display:flex}
+  .panel{flex:1;padding:48px;display:flex;flex-direction:column;gap:34px}
+  .phone-wrap{position:relative;align-self:center}
+  .phone{width:330px;height:720px;background:#0f172a;border-radius:64px;padding:36px 26px;position:relative;box-shadow:0 60px 140px -30px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.08);overflow:hidden;display:flex;flex-direction:column;perspective:1400px;background:linear-gradient(145deg,#1e293b,#0f172a);transform-style:preserve-3d}
+  .phone::before{content:'';position:absolute;top:18px;left:50%;transform:translateX(-50%);width:150px;height:22px;background:#334155;border-radius:11px}
+  .phone::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to bottom, rgba(255,255,255,0.14), rgba(255,255,255,0));pointer-events:none;border-radius:64px}
+  .screen{flex:1;background:#fff;border-radius:44px;overflow:hidden;position:relative;box-shadow:inset 0 2px 6px rgba(0,0,0,0.04)}
+  .pass{height:100%;display:flex;flex-direction:column;padding:36px;position:relative}
+  .pass-status{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+  .badge-sm{padding:6px 14px;border-radius:999px;font-size:11px;font-weight:900}
+  .badge-ready{background:#ECFDF5;color:var(--green)}
+  .badge-collected{background:#DCFCE7;color:var(--teal-dark)}
+  .pass-loc{font-size:14px;color:#64748b;font-weight:900;margin-bottom:8px}
+  .pass-loc span{font-weight:500;color:#94a3b8}
+  .pass-hours{font-size:14px;color:#64748b;margin-bottom:24px}
+  .pass-meta{display:flex;gap:16px;margin-bottom:28px}
+  .meta-cell{flex:1;border:1px solid var(--border);border-radius:18px;padding:14px;text-align:center;background:#fafafa}
+  .meta-cell .lbl{font-size:11px;color:#64748b;font-weight:900;text-transform:uppercase;letter-spacing:.6px}
+  .meta-cell .val{font-size:17px;font-weight:900;color:var(--ink);font-variant-numeric:tabular-nums}
+  .pass-pin{font-variant-numeric:tabular-nums;font-size:52px;font-weight:900;letter-spacing:12px;color:var(--ink);margin:36px 0 14px;text-align:center}
+  .pass-qr{width:132px;height:132px;margin:0 auto 26px;background:#fff;border:1px solid var(--border);border-radius:20px;display:grid;place-items:center;box-shadow:var(--shadow)}
+  .pass-btn{width:100%;padding:18px;border-radius:20px;border:none;background:var(--teal);color:#fff;font-weight:900;font-size:17px;cursor:pointer;transition:var(--transition);box-shadow:0 16px 32px -10px rgba(13,148,136,0.5)}
+  .pass-btn:hover{background:var(--teal-dark);transform:translateY(-3px);box-shadow:0 24px 44px -10px rgba(13,148,136,0.6)}
+  .collected-screen{display:none:flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:52px 24px}
+  .check{width:84px;height:84px;border-radius:50%;background:#ECFDF5;color:var(--green);display:grid;place-items:center;font-size:40px;margin-bottom:22px;box-shadow:0 16px 36px -10px rgba(16,185,129,0.35)}
+  .collected-screen h4{font-size:26px;font-weight:900;margin-bottom:12px}
+  .collected-screen p{color:#64748b;font-size:16px;margin-bottom:30px}
+  .counter{display:flex;flex-direction:column;gap:30px}
+  .tent{background:#fff;border:1px solid var(--border);border-radius:26px;padding:34px;box-shadow:var(--shadow-3d)}
+  .tent h4{font-size:20px;font-weight:900;color:var(--ink);margin-bottom:10px}
+  .tent p{font-size:15px;color:#64748b}
+  .shelf{background:#fff;border:1px solid var(--border);border-radius:26px;padding:34px;box-shadow:var(--shadow-3d);position:relative}
+  .shelf h4{font-size:20px;font-weight:900;margin-bottom:12px}
+  .shelf-id{font-size:15px;font-weight:900;color:var(--ink);font-variant-numeric:tabular-nums;margin-bottom:10px}
+  .shelf-status{display:inline-block;padding:8px 18px;border-radius:999px;font-size:13px;font-weight:900;background:#F1F5F9;color:#475569}
+  .status-held{background:#ECFDF5;color:var(--green)}
+  .status-done{background:#DCFCE7;color:var(--teal-dark)}
+  .modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(15,23,42,0.55);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:32px}
+  .modal.open{display:flex}
+  .modal-box{background:var(--white);border-radius:30px;padding:42px;max-width:460px;width:100%;box-shadow:0 40px 100px -16px rgba(0,0,0,0.4);text-align:center;transform:scale(0.85);transition:transform .35s}
+  .modal.open .modal-box{transform:scale(1)}
+  .modal-box h4{font-size:22px;font-weight:900;margin-bottom:14px}
+  .modal-box p{color:#475569;font-size:16px;margin-bottom:30px;line-height:1.8}
+  .modal-actions{display:flex;gap:14px;justify-content:center}
+  .modal-btn{padding:14px 26px;border-radius:18px;border:none;font-weight:900;font-size:15px;cursor:pointer;transition:var(--transition)}
+  .modal-btn-outline{background:transparent;border:1px solid var(--border);color:var(--ink)}
+  .modal-btn-outline:hover{background:#f8fafc}
+  .modal-btn-teal{background:var(--teal);color:#fff;box-shadow:0 14px 30px -10px rgba(13,148,136,0.45)}
+  .modal-btn-teal:hover{background:var(--teal-dark);transform:translateY(-3px)}
+  .val-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+  .flip-card{background:transparent;border:none;width:100%;height:320px;perspective:1000px;cursor:pointer}
+  .flip-inner{position:relative;width:100%;height:100%;text-align:center;transition:transform 0.8s;transform-style:preserve-3d}
+  .flip-card.flipped .flip-inner{transform:rotateY(180deg)}
+  .flip-face{position:absolute;width:100%;height:100%;-webkit-backface-visibility:hidden;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:30px;padding:32px;gap:16px;box-shadow:var(--shadow-3d);border:1px solid var(--border)}
+  .flip-front{background:var(--white);color:var(--ink)}
+  .flip-back{background:var(--teal);color:#fff;transform:rotateY(180deg)}
+  .flip-face .ic{width:52px;height:52px;border-radius:16px;background:rgba(255,255,255,0.15);display:grid;place-items:center;font-size:24px;margin-bottom:8px}
+  .flip-back .ic{background:rgba(255,255,255,0.2)}
+  .flip-face h4{font-size:19px;font-weight:900;margin:0}
+  .flip-face p{font-size:14px;opacity:0.9;line-height:1.6;max-width:260px;text-align:center;margin:0}
+  .trust{display:flex;gap:22px;flex-wrap:wrap;margin-top:52px}
+  .trust-item{flex:1;min-width:180px;background:var(--white);border:1px solid var(--border);border-radius:28px;padding:32px;box-shadow:var(--shadow-3d);text-align:center;transition:var(--transition);transform-style:preserve-3d}
+  .trust-item:hover{transform:translateY(-8px) rotateX(4deg)}
+  .trust-item .ic{width:52px;height:52px;border-radius:16px;background:#E0F2F1;color:var(--teal-dark);display:grid;place-items:center;margin:0 auto 18px;font-size:24px;box-shadow:0 12px 24px -8px rgba(13,148,136,0.25)}
+  .trust-item h5{font-size:17px;font-weight:900;margin-bottom:10px}
+  .trust-item p{font-size:14px;color:#64748b;line-height:1.7}
+  .unit-flow{display:flex;gap:22px;align-items:center;padding:30px;background:var(--canvas);border-radius:26px;flex-wrap:wrap;margin-bottom:38px}
+  .unit-item{background:var(--white);border:1px solid var(--border);border-radius:22px;padding:24px;text-align:center;min-width:160px;box-shadow:var(--shadow);transition:var(--transition);transform-style:preserve-3d}
+  .unit-item:hover{transform:translateY(-6px) rotateX(3deg)}
+  .unit-item .lbl{font-size:11px;font-weight:900;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+  .unit-item .amt{font-size:26px;font-weight:900;color:var(--ink);font-variant-numeric:tabular-nums}
+  .unit-item .note{font-size:11px;color:#64748b;margin-top:6px}
+  .tag-small{font-size:10px;font-weight:900;padding:3px 10px;border-radius:8px;background:var(--amber-bg);color:#92400E;vertical-align:middle;margin-left:8px}
+  .toggle-bar{display:flex;gap:14px;align-items:center;margin-bottom:24px}
+  .view-btn{padding:12px 24px;border-radius:14px;border:1px solid var(--border);background:var(--white);font-size:13px;font-weight:900;cursor:pointer;color:#475569;transition:var(--transition)}
+  .view-btn.active{background:var(--teal);color:#fff;border-color:var(--teal);box-shadow:0 12px 24px -8px rgba(13,148,136,0.35)}
+  table{width:100%;border-collapse:collapse;background:var(--white);border:1px solid var(--border);border-radius:26px;overflow:hidden;box-shadow:var(--shadow-3d)}
+  th,td{padding:24px;text-align:left;border-bottom:1px solid #f1f5f9;font-size:14.5px}
+  th{background:#F8FAFC;font-weight:900;color:#475569;font-size:12px;text-transform:uppercase;letter-spacing:.6px}
+  tr:last-child td{border-bottom:none}
+  tr:hover{background:#fcfdfd;transform:scale(1.005)}
+  .net{font-variant-numeric:tabular-nums;font-weight:900}
+  .net-neg{color:#dc2626}
+  .net-pos{color:var(--green)}
+  .chart-view{display:none}
+  .bar{height:34px;background:#E2E8F0;border-radius:17px;position:relative;overflow:hidden;margin-bottom:16px}
+  .bar-fill{height:100%;background:linear-gradient(90deg,#0D9488,#10B981);border-radius:17px 0 0 17px}
+  .bar-lbl{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.3)}
+  .caption{font-size:13.5px;color:#64748b;margin-top:22px;font-style:italic}
+  .pilot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+  .pilot-card{background:var(--white);border:1px solid var(--border);border-radius:30px;padding:36px;box-shadow:var(--shadow-3d);transition:var(--transition);transform-style:preserve-3d}
+  .pilot-card:hover{transform:translateY(-8px) rotateX(4deg)}
+  .pilot-card h4{font-size:20px;font-weight:900;margin-bottom:14px}
+  .pilot-card p{color:#475569;font-size:15px;line-height:1.8}
+  .pilot-card .k{font-weight:900;color:var(--teal-dark)}
+  footer{border-top:1px solid var(--border);padding:64px 0 80px;color:#64748b;font-size:14px;text-align:center}
+  footer p{margin-bottom:10px;line-height:1.8}
+  .reveal{opacity:0;transform:translateY(40px);transition:opacity .8s ease,transform .8s ease}
+  .reveal.visible{opacity:1;transform:translateY(0)}
+  @media (max-width:900px){
+    .hero,.demo-split,.val-grid,.pilot-grid{grid-template-columns:1fr;flex-direction:column}
+    .hero-inner{grid-template-columns:1fr;padding:100px 0;gap:40px}
+    .hero > div:first-child{max-width:100%;text-align:left}
+    .impact-card{max-width:100%}
+    .hero h1{font-size:42px}
+    .section-title{font-size:36px}
+    .phone{width:100%;max-width:340px;height:640px;align-self:center}
+    nav{display:none}
+    .flow{flex-direction:column}
+    .arrow-3d{display:none}
+    .iso-world{transform:rotateX(25deg) rotateZ(-12deg) translateZ(-140px)}
+  }
+</style>
+</head>
+<body>
+<div class="depth"></div>
+
+<header>
+  <div class="container header-inner">
+    <a href="#" class="logo">
+      <div class="logo-mark">G</div>
+      <div class="logo-text">onmyway</div>
+    </a>
+    <nav>
+      <ul>
+        <li><a href="#map">3D Mapa</a></li>
+        <li><a href="#flow">Kako to radi</a></li>
+        <li><a href="#demo">Live demo</a></li>
+        <li><a href="#finance">Poslovni i pilotni plan</a></li>
+      </ul>
+    </nav>
+    <a href="#demo" class="btn btn-primary btn-sm">Pokreni Live Demo</a>
+  </div>
+</header>
+
+<section class="hero reveal" id="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div>
+        <div class="eyebrow">PROPUŠAN PILOT &bull; GRBAVICA, SARAJEVO</div>
+        <h1>Preuzmite male pakete na šetnji ili tramvajskoj vožnji koju već obavljate.</h1>
+        <p>Uklanjanje dodatnih aut putova i gužve dostavnih furgona u Grbavici tako što se postojeća lokalna radnja uz Vilsonovo šetalište pretvara u sigurnu tačku preuzimanja paketa za 30 sekundi.</p>
+        <div class="hero-actions">
+          <a href="#demo" class="btn btn-primary">Probaj interaktivnu demonstraciju preuzimanja</a>
+          <a href="#finance" class="btn btn-outline">Pogledaj 3-godišnji BAM pregled</a>
+        </div>
+      </div>
+      <div class="impact-card">
+      <div class="row"><span class="lbl">Ciljano područje</span><span class="val">Grbavica (Vilsonovo šetalište / Grbavička)</span></div>
+      <div class="row"><span class="lbl">Vrsta paketa</span><span class="val">Male neprašljive stvari (&lt; 5 kg)</span></div>
+      <div class="row"><span class="lbl">Domaćin partner</span><span class="val">Lokalna paperska i knjižara <span style="font-size:11px;font-weight:500;color:#94a3b8">(predloženo, još nije dogovoreno)</span></span></div>
+      <div class="row"><span class="lbl">Vrijeme predaje</span><span class="val">&lt; 30 sekundi putem PIN/QR koda</span></div>
+    </div>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal" id="map">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">KONTEKST OKOLINE</div>
+      <div class="section-title">Interaktivna 3D izometrijska shema Grbavice</div>
+      <div class="section-sub">Pešački koridori, javna prijevozna zastanka i predložena tačka preuzimanja. Kliknite oznake za detalje.</div>
+    </div>
+    <div class="map-wrap">
+      <div class="map-controls">
+        <button class="filter-pill active" data-filter="all">Sve</button>
+        <button class="filter-pill" data-filter="pedestrian">Pešački tok</button>
+        <button class="filter-pill" data-filter="transit">Tranzit zastanke</button>
+        <button class="filter-pill" data-filter="problem">Problemska mjesta</button>
+        <button class="filter-pill" data-filter="reset" style="background:#0F172A;color:#fff;border-color:#0F172A">Resetuj pogled</button>
+      </div>
+      <div class="iso-stage">
+        <div class="iso-world" id="iso-world">
+          <div class="iso-floor"></div>
+          <div class="iso-street iso-block" style="left:80px;top:220px;width:480px;height:120px;transform:rotateX(90deg) translateZ(0)"></div>
+          <div class="iso-corridor iso-block" style="left:180px;top:280px;width:280px;height:140px;transform:rotateX(90deg) translateZ(12px)"></div>
+          <div class="iso-label" style="left:300px;top:250px">VILSONOVO ŠETALIŠTE</div>
+          <div class="iso-block iso-building" style="left:40px;top:130px">
+            <div class="iso-face iso-top" style="width:140px;height:100px;top:0;left:0;transform:rotateX(90deg) translateY(-50px) translateZ(50px)"></div>
+            <div class="iso-face iso-front" style="width:140px;height:100px;top:50px;left:0;transform:translateY(-100px) translateZ(50px)"></div>
+            <div class="iso-face iso-side" style="width:100px;height:100px;top:0;left:140px;transform:rotateY(90deg) translateX(50px) translateZ(50px)"></div>
+          </div>
+          <div class="iso-block iso-building" style="left:500px;top:90px">
+            <div class="iso-face iso-top" style="width:140px;height:100px;top:0;left:0;transform:rotateX(90deg) translateY(-50px) translateZ(50px)"></div>
+            <div class="iso-face iso-front" style="width:140px;height:100px;top:50px;left:0;transform:translateY(-100px) translateZ(50px)"></div>
+            <div class="iso-face iso-side" style="width:100px;height:100px;top:0;left:140px;transform:rotateY(90deg) translateX(50px) translateZ(50px)"></div>
+          </div>
+          <div class="iso-pin iso-stop" style="left:190px;top:320px" data-tip="Tramvajska stanica: Trg Oslobođenja"><div class="iso-bubble">Tramvajska stanica</div></div>
+          <div class="iso-pin iso-stop" style="left:470px;top:300px" data-tip="Trolleybusna stanica: Marijin dvor"><div class="iso-bubble">Trolleybusna stanica</div></div>
+          <div class="iso-pin iso-stop" style="left:320px;top:400px" data-tip="Tramvajska stanica: Grbavica"><div class="iso-bubble">Tramvajska stanica Grbavica</div></div>
+          <div class="iso-pin iso-pickup" id="pin-pickup" style="left:360px;top:340px" data-tip="Predložena tačka preuzimanja: Lokalna paperska i knjižara"><div class="iso-bubble">Tačka preuzimanja paketa</div></div>
+          <div class="iso-label" style="left:360px;top:310px">PREUZIMANJE PAKETA</div>
+          <div style="position:absolute;left:360px;top:340px;width:160px;height:160px;border:2px dashed var(--teal);border-radius:50%;transform:translate(-50%,-50%) rotateX(90deg) translateZ(1px);opacity:0.4"></div>
+          <div style="position:absolute;left:360px;top:340px;width:260px;height:260px;border:2px dashed var(--teal);border-radius:50%;transform:translate(-50%,-50%) rotateX(90deg) translateZ(1px);opacity:0.2"></div>
+        </div>
+      </div>
+      <div class="info-card reveal" id="info-card">
+        <h3 id="info-title">Predložena tačka preuzimanja</h3>
+        <p id="info-text">Paperska i knjižarna uz Vilsonovo šetalište će poslužiti kao sigurna tačka preuzimanja malih paketa. Locirana je unutar 3-minutnog pešačkog polumjera od tramvajskih i trolleybusnih zastanaka.</p>
+        <span class="tag" id="info-tag">Domaćin partner — predloženo</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal" id="flow">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">USLUŽNI TOK</div>
+      <div class="section-title">Tri koraka usluge</div>
+      <div class="section-sub">Dizajnirano da se umeće u postojeće dnevne rutine stanovnika bez novih infrastrukturnih troškova.</div>
+    </div>
+    <div class="flow">
+      <div class="step">
+        <div class="step-badge">01</div>
+        <h4>Narudžba i ruta</h4>
+        <p>Stanovnik odabere "onmyway" pri pokupici (ili putem SMS veze) i dobiva 6-čifreni PIN kod + QR kod prilikom dolaska paketa.</p>
+      </div>
+      <div class="arrow-3d"></div>
+      <div class="step">
+        <div class="step-badge">02</div>
+        <h4>Spremanje u vanjskospicu</h4>
+        <p>Kurir dostavlja male pakete jednom dnevno; radnja skladišti stavke na sigurnom zadnjem pultu — bez skupih zidova spremišta.</p>
+      </div>
+      <div class="arrow-3d"></div>
+      <div class="step">
+        <div class="step-badge">03</div>
+        <h4>Sigurno preuzimanje za 30 sekundi</h4>
+        <p>Stanovnik se zaustavi na svojoj šetnji ili tranzit vožnji, potvrdi PIN/QR kod i preuzme paket.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal" id="demo">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">ŽIVA DEMONSTRACIJA</div>
+      <div class="section-title">Interaktivna vizuelna demonstracija</div>
+      <div class="section-sub">Simulirajte put kupca: od dolaska paketa do preuzimanja i kratke ankete o načinu putovanja.</div>
+    </div>
+    <div class="demo">
+      <div class="demo-head">
+        <h3>Simuliraj put kupca</h3>
+        <div class="state-toggle">
+          <button class="state-btn active" data-state="arrived">Stanje 1: Paket stiglo</button>
+          <button class="state-btn" data-state="counter">Stanje 2: Na pultu radnje</button>
+          <button class="state-btn" data-state="collected">Stanje 3: Preuzeto i anketirano</button>
+        </div>
+      </div>
+      <div class="demo-split">
+        <div class="panel">
+          <div class="phone-wrap">
+            <div class="phone" id="phone-el">
+              <div class="screen">
+                <div class="pass" id="pass-screen">
+                  <div class="pass-status"><span class="badge-sm badge-ready">READY FOR PICK-UP</span></div>
+                  <div class="pass-loc">Predložena lokacija <span>Grbavička / Vilsonovo šetalište</span></div>
+                  <div class="pass-hours">Pon–Pet 08:00–20:00 | Sub 09:00–15:00</div>
+                  <div class="pass-meta">
+                    <div class="meta-cell"><div class="lbl">Veličina</div><div class="val">Mali kutija</div></div>
+                    <div class="meta-cell"><div class="lbl">Težina</div><div class="val">&lt; 5 kg</div></div>
+                  </div>
+                  <div class="pass-pin" id="pin-display">482 910</div>
+                  <div class="pass-qr" id="qr-code"></div>
+                  <button class="btn pass-btn" id="verify-btn">Potvrdi PIN i dovrši preuzimanje</button>
+                </div>
+                <div class="collected-screen" id="collected-screen">
+                  <div class="check">✓</div>
+                  <h4>Preuzeto</h4>
+                  <p>Hvala što koristite onmyway.</p>
+                  <button class="btn btn-outline btn-sm" onclick="resetDemo()">Ponovno pokreni simulaciju</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="counter">
+            <div class="tent">
+              <h4>onmyway — Tačka preuzimanja</h4>
+              <p>Imate svoj 6-čifreni PIN spreman.</p>
+            </div>
+            <div class="shelf">
+              <h4>Oznaka na polici ispred pulta</h4>
+              <div class="shelf-id" id="shelf-id">ID: #GRB-104</div>
+              <div style="font-size:15px;color:#64748b;margin-bottom:12px">Stiglo: Utorak • Limit čuvanja: 5 dana</div>
+              <span class="shelf-status status-held" id="shelf-status">U SKLADIŠTU</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal" id="survey-modal">
+  <div class="modal-box">
+    <h4>Kratka anketa</h4>
+    <p>Kako biste dobili ovaj predmet bez Stop &amp; Go?</p>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-outline" onclick="closeSurvey('car')">Aut put</button>
+      <button class="modal-btn modal-btn-outline" onclick="closeSurvey('van')">Dostavni furgon</button>
+      <button class="modal-btn modal-btn-teal" onclick="closeSurvey('walk')">Šetnja ili tramvaj</button>
+    </div>
+  </div>
+</div>
+
+<section class="section reveal" id="value">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">VRIJEDNOST ZA SVIH</div>
+      <div class="section-title">Vrednost i operativne zaštite</div>
+      <div class="section-sub">Zašto ovu uslugu preferiraju stanovnika i predložena domaćin radnja.</div>
+    </div>
+    <div class="val-grid">
+      <div class="flip-card" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front">
+            <div class="ic">🏠</div>
+            <h4>Za građane</h4>
+          </div>
+          <div class="flip-face flip-back">
+            <div class="ic">✅</div>
+            <h4>Za građane</h4>
+            <p>Nema čekanja na kurirske prozore, nema stresa sa parkiranjem u Grbavici i prirodno se umeće u večernje šetnje ili tranzit vožnje.</p>
+          </div>
+        </div>
+      </div>
+      <div class="flip-card" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front">
+            <div class="ic">🏪</div>
+            <h4>Za domaćina</h4>
+          </div>
+          <div class="flip-face flip-back">
+            <div class="ic">💶</div>
+            <h4>Za domaćina</h4>
+            <p>Garantovana lokalna promaćaja, veća impulsna prodaja (papirnica, knjige, pokloni) i nema dodatnog zaposlenog.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="trust">
+      <div class="trust-item">
+        <div class="ic">🕒</div>
+        <h5>Prošireno vrijeme rada</h5>
+        <p>Otvoreno do 20:00 u radnim danima + subotnijejutro.</p>
+      </div>
+      <div class="trust-item">
+        <div class="ic">🔒</div>
+        <h5>Sigurnosno skladištenje</h5>
+        <p>Zaključano/nadzorano skladištenje + obavezna verifikacija PIN koda.</p>
+      </div>
+      <div class="trust-item">
+        <div class="ic">📱</div>
+        <h5>Automatizovani podsjetnici</h5>
+        <p>SMS podsjetnici u dan 2 i dan 4.</p>
+      </div>
+      <div class="trust-item">
+        <div class="ic">↩</div>
+        <h5>Politika ne preuzetih</h5>
+        <p>Automatski povrat kuriru nakon 5. dana.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal" id="finance">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">FINANSIJSKI PREGLED</div>
+      <div class="section-title">Poslovni model i 3-godišnji prikaz (BAM)</div>
+      <div class="section-sub">Sve cijene su jasno označene preliminarne procjene za planiranje pilota.</div>
+    </div>
+    <div class="unit-flow">
+      <div class="unit-item">
+        <div class="lbl">Prodavac / Kurir plaća</div>
+        <div class="amt">1,50 BAM</div>
+        <div class="note">po preuzetom paketu</div>
+        <span class="tag-small">PROCJENA</span>
+      </div>
+      <div class="unit-item">
+        <div class="lbl">Opcionalni popis</div>
+        <div class="amt">50 BAM/mj</div>
+        <div class="note">Izloženi popis radnje</div>
+        <span class="tag-small">PROCJENA</span>
+      </div>
+      <div class="unit-item">
+        <div class="lbl">Stanovnik plaća</div>
+        <div class="amt">0,00 BAM</div>
+        <div class="note">Besplatno unutar 5 dana</div>
+      </div>
+      <div class="unit-item">
+        <div class="lbl">Domaćin radnja zaradjuje</div>
+        <div class="amt">0,70 BAM</div>
+        <div class="note">Po preuzetom paketu</div>
+        <span class="tag-small">PROCJENA</span>
+      </div>
+    </div>
+    <div class="toggle-bar">
+      <button class="view-btn active" data-view="table">Pregled tabele</button>
+      <button class="view-btn" data-view="chart">Pregled bar dijagrama</button>
+    </div>
+    <div class="table-view" id="fin-table">
+      <table>
+        <thead>
+          <tr><th>Godina</th><th>Paketi</th><th>Prihodi</th><th>Troškovi</th><th>Neto</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Godina 1 — Pilot (1 tačka)</td>
+            <td class="val">~1.200</td>
+            <td class="val">2.100 BAM</td>
+            <td class="val">3.600 BAM (1.200 postava + 2.400 radni)</td>
+            <td class="net net-neg">-1.500 BAM</td>
+            <td>Pilotska ulaganje</td>
+          </tr>
+          <tr>
+            <td>Godina 2 — 3 tačke</td>
+            <td class="val">~6.000</td>
+            <td class="val">10.200 BAM</td>
+            <td class="val">7.800 BAM (radni troškovi)</td>
+            <td class="net net-pos">+2.400 BAM</td>
+            <td>Profitabilno</td>
+          </tr>
+          <tr>
+            <td>Godina 3 — 8 tačaka</td>
+            <td class="val">~18.000</td>
+            <td class="val">30.000 BAM</td>
+            <td class="val">21.600 BAM (radni troškovi)</td>
+            <td class="net net-pos">+8.400 BAM</td>
+            <td>Profitabilno</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="chart-view" id="fin-chart">
+      <div style="font-size:13px;color:#64748b;margin-bottom:14px;font-weight:900">Neto hasil po godini (BAM)</div>
+      <div class="bar"><div class="bar-fill" style="width:0%" id="bar1"></div><div class="bar-lbl" id="bar1lbl">-1.500 BAM</div></div>
+      <div class="bar"><div class="bar-fill" style="width:0%" id="bar2"></div><div class="bar-lbl" id="bar2lbl">+2.400 BAM</div></div>
+      <div class="bar"><div class="bar-fill" style="width:0%" id="bar3"></div><div class="bar-lbl" id="bar3lbl">+8.400 BAM</div></div>
+    </div>
+    <div class="caption">Sve financijske cijene, paketni volumen i takse su jasno označene preliminarne procjene za planiranje pilota.</div>
+  </div>
+</section>
+
+<section class="section reveal" id="pilot">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">PILOT PLAN</div>
+      <div class="section-title">4-tjedni pilot plan i okvir evaluacije</div>
+      <div class="section-sub">Izravan test u Grbavici sa jednim predloženim domaćinom i jednim lokalnim online prodavačem/kurirskim servisom.</div>
+    </div>
+    <div class="pilot-grid">
+      <div class="pilot-card">
+        <h4>Opseg</h4>
+        <p>4-tjedni test s <span class="k">1 predloženom Grbavičkom paperskom/knjižarnom radnjom</span> i <span class="k">1 lokalnim online prodavačem/kurirskim servisom</span>.</p>
+      </div>
+      <div class="pilot-card">
+        <h4>Glavni KPI-ji</h4>
+        <p>Ukupan broj preuzetih paketa i <span class="k">% ponovnih korisnika</span> unutar 4 tjedna.</p>
+      </div>
+      <div class="pilot-card">
+        <h4>Testiranje smanjenja aut putova</h4>
+        <p>Smanjenje aut putova <span class="k">jos nije zaičeno</span>; bit će mjereno preko obavezne 1-pitanja provjere promjene načina putovanja pri preuzimanju paketa.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Razvijeno za <strong>EIT Urban Mobility Finale Challenge (B2)</strong>.</p>
+    <p>Partner radnje je <strong>predloženi partner (još nije dogovoren)</strong>, a sve financijske/operativne metrike predstavljaju <strong>jasno označene procjene</strong>.</p>
+  </div>
+</footer>
+
+<script>
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible') });
+  },{threshold:0.12});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+  const phone = document.getElementById('phone-el');
+  document.addEventListener('mousemove',(e)=>{
+    const x = (e.clientX / window.innerWidth - 0.5) * 2;
+    const y = (e.clientY / window.innerHeight - 0.5) * 2;
+    phone.style.transform = `rotateX(${-y * 8}deg) rotateY(${x * 10}deg)`;
+  });
+
+  const stage = document.querySelector('.iso-stage');
+  stage.addEventListener('mousemove',(e)=>{
+    const rect = stage.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) / rect.width - 0.5;
+    const my = (e.clientY - rect.top) / rect.height - 0.5;
+    isoWorld.style.transform = `rotateX(${30 - my * 12}deg) rotateZ(${0 + mx * 10}deg) translateZ(-160px)`;
+  });
+  stage.addEventListener('mouseleave',()=>{
+    isoWorld.style.transform = `rotateX(30deg) rotateZ(0deg) translateZ(-160px)`;
+  });
+
+  const infoCard = document.getElementById('info-card');
+  const infoTitle = document.getElementById('info-title');
+  const infoText = document.getElementById('info-text');
+  const infoTag = document.getElementById('info-tag');
+  const filterPills = document.querySelectorAll('.filter-pill');
+  const pins = document.querySelectorAll('.iso-pin');
+  const isoWorld = document.getElementById('iso-world');
+
+  const infoData = {
+    all: {
+      title: 'Predložena tačka preuzimanja',
+      text: 'Paperska i knjižarna uz Vilsonovo šetalište će poslužiti kao sigurna tačka preuzimanja malih paketa. Locirana je unutar 3-minutnog pešačkog polumjera od tramvajskih i trolleybusnih zastanaka.',
+      tag: 'Domaćin partner — predloženo'
+    },
+    pedestrian: {
+      title: 'Pešački tok',
+      text: 'Vilsonovo šetalište je glavni pešački koridor kroz Grbavicu, povezujući residentialne zone sa lokalnim trgovinama i javnim prijevozom.',
+      tag: 'Pešački koridor'
+    },
+    transit: {
+      title: 'Tramvajski i trolleybusni zastanci',
+      text: 'Blisko su tri javno prijevozna zastanka sa 3- i 5-minutnim pešačkim polumjerima, čineći tačku preuzimanja pristupačnom putnicima.',
+      tag: 'Javni prijevoz'
+    },
+    problem: {
+      title: 'Problemska mjesta',
+      text: 'Prošutane dnevne pristigli dostave prisiljavaju furgone na ponovnu dostavu po uzkim ulicama ili dodatne aut putove stanovnika do dalekih depa.',
+      tag: 'Logistički problem'
+    }
+  };
+
+  filterPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      if(pill.dataset.filter === 'reset'){
+        isoWorld.style.transform = 'rotateX(30deg) rotateZ(0deg) translateZ(-160px)';
+        filterPills.forEach(p => p.classList.remove('active'));
+        document.querySelector('[data-filter="all"]').classList.add('active');
+        pins.forEach(p => p.style.opacity = '1');
+        return;
+      }
+      filterPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      const f = pill.dataset.filter;
+      const d = infoData[f];
+      infoTitle.textContent = d.title;
+      infoText.textContent = d.text;
+      infoTag.textContent = d.tag;
+      pins.forEach(pin => {
+        pin.style.opacity = (f === 'all' || pin.classList.contains(f)) ? '1' : '0.35';
+      });
+    });
+  });
+
+  pins.forEach(pin => {
+    pin.style.cursor = 'pointer';
+    pin.addEventListener('click', () => {
+      const tip = pin.dataset.tip;
+      if (!tip) return;
+      infoTitle.textContent = tip;
+      infoText.textContent = 'Kliknite filter pills za pogled konteksta ove kategorije.';
+      infoTag.textContent = 'Interaktivna oznaka';
+    });
+  });
+
+  function makeQR(text, size) {
+    const n = 21;
+    const cell = size / n;
+    let svg = '';
+    function finder(x,y){
+      for(let i=0;i<7;i++){
+        for(let j=0;j<7;j++){
+          const on = (i===0||i===6||j===0||j===6) || (i>=2&&i<=4&&j>=2&&j<=4);
+          svg+=`<rect x="${(x+j)*cell}" y="${(y+i)*cell}" width="${cell}" height="${cell}" fill="${on?'#000':'#fff'}" />`;
+        }
+      }
+    }
+    finder(1,1); finder(n-8,1); finder(1,n-8);
+    for(let i=0;i<n;i++){
+      for(let j=0;j<n;j++){
+        if((i<7&&j<7)||(i<7&&j>n-8)||(i>n-8&&j<7)||(i===6&&j>=6&&j<=n-7)||(j===6&&i>=6&&i<=n-7)) continue;
+        const on = ((i*17 + j*31 + text.length*7) % 3) === 0;
+        svg+=`<rect x="${j*cell}" y="${i*cell}" width="${cell}" height="${cell}" fill="${on?'#000':'#fff'}" />`;
+      }
+    }
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
+  }
+  document.getElementById('qr-code').innerHTML = makeQR('GRB-104 PIN:482910', 132);
+
+  const passScreen = document.getElementById('pass-screen');
+  const collectedScreen = document.getElementById('collected-screen');
+  const verifyBtn = document.getElementById('verify-btn');
+  const shelfStatus = document.getElementById('shelf-status');
+  const stateBtns = document.querySelectorAll('.state-btn');
+  const modal = document.getElementById('survey-modal');
+
+  function showState(state){
+    stateBtns.forEach(b=>b.classList.toggle('active', b.dataset.state===state));
+    if(state==='arrived'){
+      passScreen.style.display='flex';
+      collectedScreen.style.display='none';
+      verifyBtn.style.display='block';
+      shelfStatus.className='shelf-status status-held';
+      shelfStatus.textContent='U SKLADIŠTU';
+      verifyBtn.textContent='Potvrdi PIN i dovrši preuzimanje';
+      verifyBtn.onclick = handleVerify;
+    } else if(state==='counter'){
+      passScreen.style.display='flex';
+      collectedScreen.style.display='none';
+      verifyBtn.style.display='none';
+      shelfStatus.className='shelf-status status-held';
+      shelfStatus.textContent='U SKLADIŠTU';
+    } else if(state==='collected'){
+      passScreen.style.display='none';
+      collectedScreen.style.display='flex';
+      verifyBtn.style.display='none';
+      shelfStatus.className='shelf-status status-done';
+      shelfStatus.textContent='PREDAĐO';
+    }
+  }
+
+  function handleVerify(){
+    passScreen.style.display='none';
+    collectedScreen.style.display='flex';
+    shelfStatus.className='shelf-status status-done';
+    shelfStatus.textContent='PREDAĐO';
+    openSurvey();
+  }
+
+  function openSurvey(){ modal.classList.add('open'); }
+  function closeSurvey(mode){
+    modal.classList.remove('open');
+    const labels = {car:'Aut put', van:'Dostavni furgon', walk:'Šetnja ili tramvaj'};
+    console.log('Mode shift answer:', mode, labels[mode]);
+  }
+
+  stateBtns.forEach(b=>{
+    b.addEventListener('click', ()=>showState(b.dataset.state));
+  });
+
+  function resetDemo(){ showState('arrived'); }
+
+  const viewBtns = document.querySelectorAll('.view-btn');
+  const tableView = document.getElementById('fin-table');
+  const chartView = document.getElementById('fin-chart');
+  viewBtns.forEach(b=>{
+    b.addEventListener('click',()=>{
+      viewBtns.forEach(v=>v.classList.toggle('active', v===b));
+      const view = b.dataset.view;
+      tableView.style.display = view==='table' ? 'block' : 'none';
+      chartView.style.display = view==='chart' ? 'block' : 'none';
+      if(view==='chart') animateBars();
+    });
+  });
+
+  function animateBars(){
+    const targets = [15,24,84];
+    const labels = ['-1.500 BAM','+2.400 BAM','+8.400 BAM'];
+    const ids = ['bar1','bar2','bar3'];
+    const lbls = ['bar1lbl','bar2lbl','bar3lbl'];
+    let t=0;
+    const iv = setInterval(()=>{
+      t+=4;
+      const p = Math.min(t/50,1);
+      ids.forEach((id,i)=>{
+        document.getElementById(id).style.width = (targets[i]*p) + '%';
+        if(p===1) document.getElementById(lbls[i]).textContent = labels[i];
+      });
+      if(t>=50) clearInterval(iv);
+    },20);
+  }
+  animateBars();
+</script>
+</body>
+</html>
